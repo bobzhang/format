@@ -4,14 +4,15 @@
 // - https://hexdocs.pm/elixir/Inspect.Algebra.html
 
 ///|
+#derive(Show)
 enum SimplifiedDoc {
   Nil
   Text(@rope.Rope, SimplifiedDoc)
-  Line(Int, SimplifiedDoc)
-} derive(Show)
+  Line(Int32, SimplifiedDoc)
+}
 
 ///|
-fn to_string(self : SimplifiedDoc) -> String {
+fn SimplifiedDoc::to_string(self : SimplifiedDoc) -> String {
   match self {
     Nil => ""
     Text(s, doc) => s.to_string() + doc.to_string()
@@ -20,17 +21,17 @@ fn to_string(self : SimplifiedDoc) -> String {
 }
 
 ///|
-pub impl @base.Formattable for Doc with format(self, field) {
+pub impl @base.Formattable for Doc with fn format(self, field) {
   simplify(field.or_default().width(), 0, [(0, Flat, Group(self))]).to_string()
 }
 
 ///|
-pub fn op_add(self : Doc, other : Doc) -> Doc {
+pub fn Doc::op_add(self : Doc, other : Doc) -> Doc {
   Concat(self, other)
 }
 
 ///|
-fn fits(width : Int, list : Array[(Int, Mode, Doc)]) -> Bool {
+fn fits(width : Int32, list : Array[(Int32, Mode, Doc)]) -> Bool {
   if width < 0 {
     return false
   }
@@ -49,9 +50,9 @@ fn fits(width : Int, list : Array[(Int, Mode, Doc)]) -> Bool {
 
 ///|
 fn simplify(
-  width : Int,
-  column : Int,
-  array : Array[(Int, Mode, Doc)]
+  width : Int32,
+  column : Int32,
+  array : Array[(Int32, Mode, Doc)],
 ) -> SimplifiedDoc {
   match array {
     [] => Nil
@@ -75,6 +76,6 @@ fn simplify(
 }
 
 ///|
-pub fn Doc::print(self : Doc, width~ : Int = 50) -> String {
+pub fn Doc::print(self : Doc, width~ : Int32 = 50) -> String {
   simplify(width, 0, [(0, Flat, Group(self))]).to_string()
 }

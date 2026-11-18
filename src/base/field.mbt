@@ -1,9 +1,9 @@
 ///|
-pub fn width(self : FormatField) -> Int {
+pub fn FormatField::width(self : FormatField) -> Int32 {
   self.width
 }
 
 ///|
-pub fn precision(self : FormatField) -> Int? {
+pub fn FormatField::precision(self : FormatField) -> Int32? {
   self.precision
 }

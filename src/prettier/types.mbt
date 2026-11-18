@@ -1,27 +1,29 @@
 ///|
+#derive(Show, Eq, Default)
 pub(all) enum Doc {
   Empty
   Break(String)
   Text(@rope.Rope)
   Concat(Doc, Doc)
   Group(Doc)
-  Nest(Int, Doc)
-} derive(Show, Eq, Default)
+  Nest(Int32, Doc)
+}
 
 ///|
+#derive(Show, Eq)
 pub enum Mode {
   Flat
   Break
-} derive(Show, Eq)
+}
 
 ///|
 pub(open) trait Pretty {
-  prettify(Self) -> Doc
+  fn prettify(Self) -> Doc
 }
 
 ///|
 pub(open) trait PrettyFormattable: Pretty + @base.Formattable {
-  pretty_format(Self, @base.FormatField?) -> Doc!@base.FormatError
+  fn pretty_format(Self, @base.FormatField?) -> Doc raise @base.FormatError
 }
 
 ///|

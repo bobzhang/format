@@ -1,34 +1,37 @@
 ///|
-let split_length : Int = 2048
+let split_length : Int32 = 2048
 
 // let join_length : Int = split_length / 2
 
 ///|
+#derive(Default, Show, Eq)
 pub struct Leaf {
   buf : String
-  start : Int
-  end : Int
-} derive(Default, Show, Eq)
+  start : Int32
+  end : Int32
+}
 
 ///|
+#derive(Default, Show, Eq)
 pub struct Node {
   left : Rope?
   right : Rope?
-} derive(Default, Show, Eq)
+}
 
 ///|
+#derive(Eq)
 pub(all) enum Rope {
-  Leaf(Leaf, len~ : Int)
-  Node(Node, len~ : Int)
-} derive(Eq)
+  Leaf(Leaf, len~ : Int32)
+  Node(Node, len~ : Int32)
+}
 
 ///|
-pub impl Default for Rope with default() {
+pub impl Default for Rope with fn default() {
   Leaf(Leaf::default(), len=0)
 }
 
 ///|
-pub impl Show for Rope with output(self, logger) {
+pub impl Show for Rope with fn output(self, logger) {
   match self {
     Leaf(leaf, ..) => Logger::write_string(logger, leaf.buf)
     Node(node, ..) => {
@@ -39,7 +42,7 @@ pub impl Show for Rope with output(self, logger) {
 }
 
 ///|
-pub fn op_add(self : Rope, other : Rope) -> Rope {
+pub fn Rope::op_add(self : Rope, other : Rope) -> Rope {
   match (self, other) {
     (Node(_, len=0), _) => other
     (_, Node(_, len=0)) => self
@@ -64,18 +67,18 @@ pub fn op_add(self : Rope, other : Rope) -> Rope {
       if len1 + len2 <= split_length {
         from_string(self.to_string() + other.to_string())
       } else {
-        Node({ left: Some(self), right: Some(other) }, len=len1 + len2)
+        Node({ left: Some(self), right: Some(other), }, len=len1 + len2)
       }
   }
 }
 
 ///|
 pub fn from_string(buf : String) -> Rope {
-  Leaf({ buf, start: 0, end: buf.length() }, len=buf.length())
+  Leaf({ buf, start: 0, end: buf.length(), }, len=buf.length())
 }
 
 ///|
-pub fn length(self : Rope) -> Int {
+pub fn Rope::length(self : Rope) -> Int32 {
   match self {
     Leaf(_, len~) => len
     Node(_, len~) => len
@@ -85,5 +88,5 @@ pub fn length(self : Rope) -> Int {
 ///|
 pub fn hidden_string(s : String) -> Rope {
   // Uses fake length to avoid counting the hidden characters when pretty printing
-  Leaf({ buf: s, start: 0, end: s.length() }, len=0)
+  Leaf({ buf: s, start: 0, end: s.length(), }, len=0)
 }

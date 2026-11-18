@@ -1,20 +1,21 @@
-///| @coverage.skip
+///|
+/// @coverage.skip
 pub fn Formatter::new() -> Formatter {
-  { builder: StringBuilder::new(), strings: [], format_specs: [] }
+  { builder: StringBuilder::StringBuilder(), strings: [], format_specs: [], }
 }
 
 ///|
-fn write_string(self : Formatter, string : String) -> Unit {
+fn Formatter::write_string(self : Formatter, string : String) -> Unit {
   self.builder.write_string(string)
 }
 
 ///|
-pub fn Formatter::init!(
+pub fn Formatter::init(
   self : Formatter,
-  format_string : String
-) -> Unit!FormatError {
+  format_string : String,
+) -> Unit raise FormatError {
   // TODO: Rewrite in a more functional style
-  let temp_builder = StringBuilder::new()
+  let temp_builder = StringBuilder::StringBuilder()
   let mut iterating_spec = false
   for c in format_string {
     match c {
@@ -50,7 +51,7 @@ pub fn Formatter::init!(
 }
 
 ///|
-fn reset(self : Formatter) -> Unit {
+fn Formatter::reset(self : Formatter) -> Unit {
   self.builder.reset()
   self.strings.clear()
   self.format_specs.clear()
@@ -90,7 +91,7 @@ fn parse_field!(self : Formatter, field : String) -> FormatField!FormatError {
           break l0~
         }
         _ =>
-          match iter.take(2).drop(1).peek() {
+          match iter.take(2).drop(1).next() {
             Some('>' | '<' | '^' as align) => {
               field = { ..field, fill: ch }
               iter = iter.drop(1)
@@ -218,7 +219,7 @@ pub fn Formatter::format!(
       self.write_string(obj.format!(None))
     } else {
       let field = self.parse_field!(fmt)
-      guard let Some(obj) = args.get(field.arg_id.or(i)) else {
+      guard let Some(obj) = args.get(field.arg_id.unwrap_or(i)) else {
         None => raise ArgumentNotFound(arg_id=i.to_string())
       }
       self.write_string(obj.format!(Some(field)))
@@ -231,7 +232,7 @@ pub fn Formatter::format!(
 }
 
 ///|
-fn collect(self : Formatter) -> String {
+fn Formatter::collect(self : Formatter) -> String {
   let string = self.builder.to_string()
   self.builder.reset()
   string

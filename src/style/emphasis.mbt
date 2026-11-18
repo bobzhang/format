@@ -1,5 +1,5 @@
 ///|
-fn Emphasis::to_idx(self : Emphasis) -> (Int, Int) {
+fn Emphasis::to_idx(self : Emphasis) -> (Int32, Int32) {
   match self {
     Bold => (1, 22)
     Faint => (2, 22)

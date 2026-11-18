@@ -16,11 +16,13 @@ test {
   )
 }
 
-///| Reference: https://github.com/Yoorkin/prettyprinter/blob/main/example/tree.mbt
+///|
+/// Reference: https://github.com/Yoorkin/prettyprinter/blob/main/example/tree.mbt
+#derive(Show)
 enum Tree {
-  Leaf(Int)
+  Leaf(Int32)
   Node(Array[Tree])
-} derive(Show)
+}
 
 ///|
 test "show tree 1" {

@@ -1,5 +1,5 @@
 ///|
-fn align(str : String, width~ : Int, align~ : Align, fill~ : Char) -> String {
+fn align(str : String, width~ : Int32, align~ : Align, fill~ : Char) -> String {
   let len = str.length()
   match align {
     Left =>
@@ -27,7 +27,7 @@ fn align(str : String, width~ : Int, align~ : Align, fill~ : Char) -> String {
 }
 
 ///|
-pub impl Formattable for String with format(self, field) {
+pub impl Formattable for String with fn format(self, field) {
   match field {
     Some(field) =>
       match field.align {
@@ -53,7 +53,7 @@ fn int64_to_string(n : Int64, type_flag : Char) -> String {
       if n == 0 {
         return "0".to_string()
       }
-      for i in -64..=0 {
+      for i in -64..<=0 {
         let i = -i
         let bit = (n >> i) & 1
         binary_string += bit.to_string()
@@ -123,7 +123,7 @@ test {
 }
 
 ///|
-pub impl Formattable for Int64 with format(self, field) {
+pub impl Formattable for Int64 with fn format(self, field) {
   let mut result = self.to_string()
   match field {
     Some(field) => {
@@ -137,7 +137,7 @@ pub impl Formattable for Int64 with format(self, field) {
       match field.sign {
         Some('+') => if self >= 0 { result = "+" + result }
         Some('-') =>
-          if self < 0 && not(result.starts_with("-")) {
+          if self < 0 && not(result.has_prefix("-")) {
             // Add a negative sign if the result doesn't already have one
             result = "-" + result
           }
@@ -177,7 +177,7 @@ pub impl Formattable for UInt with format(self, field) {
 }
 
 ///|
-pub impl Formattable for UInt64 with format(self, field) {
+pub impl Formattable for UInt64 with fn format(self, field) {
   let mut result = self.to_string()
   match field {
     Some(field) => {
@@ -211,7 +211,7 @@ pub impl Formattable for UInt64 with format(self, field) {
 }
 
 ///|
-fn count_digit(n : Double) -> Int {
+fn count_digit(n : Double) -> Int32 {
   let str = n.to_string()
   match str.split(".").collect() {
     [_, digits] => digits.length()
@@ -251,7 +251,7 @@ fn double_to_string(n : Double, type_flag : Char) -> String {
 }
 
 ///|
-pub impl Formattable for Double with format!(self, field) {
+pub impl Formattable for Double with fn format(self, field) raise {
   let mut result = self.to_string()
   match field {
     Some(field) => {
@@ -264,7 +264,7 @@ pub impl Formattable for Double with format!(self, field) {
       match field.sign {
         Some('+') => if self >= 0 { result = "+" + result }
         Some('-') =>
-          if self < 0 && not(result.starts_with("-")) {
+          if self < 0 && not(result.has_prefix("-")) {
             result = "-" + result
           }
         Some(_) => abort("unreachable")
@@ -307,7 +307,7 @@ pub impl Formattable for Float with format(self, field) {
 }
 
 ///|
-pub impl Formattable for BigInt with format(self, field) {
+pub impl Formattable for BigInt with fn format(self, field) {
   let mut result = self.to_string()
   match field {
     Some(field) => {
@@ -323,7 +323,7 @@ pub impl Formattable for BigInt with format(self, field) {
       match field.sign {
         Some('+') => if self >= 0 { result = "+" + result }
         Some('-') =>
-          if self < 0 && not(result.starts_with("-")) {
+          if self < 0 && not(result.has_prefix("-")) {
             result = "-" + result
           }
         Some(_) => abort("unreachable")

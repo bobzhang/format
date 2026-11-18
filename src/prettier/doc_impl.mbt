@@ -1,65 +1,65 @@
 ///|
-pub impl Pretty for Doc with prettify(self) {
+pub impl Pretty for Doc with fn prettify(self) {
   self
 }
 
 ///|
-pub impl Pretty for String with prettify(self) {
+pub impl Pretty for String with fn prettify(self) {
   text(self)
 }
 
 ///|
-pub impl Pretty for @rope.Rope with prettify(self) {
+pub impl Pretty for @rope.Rope with fn prettify(self) {
   Text(self)
 }
 
 ///|
-pub impl Pretty for Int with prettify(self) {
+pub impl Pretty for Int32 with fn prettify(self) {
   content(self)
 }
 
 ///|
-pub impl Pretty for Bool with prettify(self) {
+pub impl Pretty for Bool with fn prettify(self) {
   content(self)
 }
 
 ///|
-pub impl Pretty for Float with prettify(self) {
+pub impl Pretty for Float with fn prettify(self) {
   content(self)
 }
 
 ///|
-pub impl Pretty for Double with prettify(self) {
+pub impl Pretty for Double with fn prettify(self) {
   content(self)
 }
 
 ///|
-pub impl Pretty for Char with prettify(self) {
+pub impl Pretty for Char with fn prettify(self) {
   content(self)
 }
 
 ///|
-pub impl Pretty for Unit with prettify(_) {
+pub impl Pretty for Unit with fn prettify(_) {
   text("()")
 }
 
 ///|
-pub impl Pretty for Int64 with prettify(self) {
+pub impl Pretty for Int64 with fn prettify(self) {
   content(self)
 }
 
 ///|
-pub impl Pretty for UInt64 with prettify(self) {
+pub impl Pretty for UInt64 with fn prettify(self) {
   content(self)
 }
 
 ///|
-pub impl Pretty for UInt with prettify(self) {
+pub impl Pretty for UInt32 with fn prettify(self) {
   content(self)
 }
 
 ///|
-pub impl[T : Pretty] Pretty for T? with prettify(self) {
+pub impl[T : Pretty] Pretty for T? with fn prettify(self) {
   match self {
     Some(x) => surround("Some(", x.prettify(), ")")
     None => text("None")
@@ -81,8 +81,8 @@ pub impl[T : Pretty] Pretty for FixedArray[T] with prettify(self) {
 }
 
 ///|
-pub impl[T : Pretty, E : Pretty + Error] Pretty for Result[T, E] with prettify(
-  self
+pub impl[T : Pretty, E : Pretty + Error] Pretty for Result[T, E] with fn prettify(
+  self,
 ) {
   match self {
     Ok(x) => surround("Ok(", x, ")")
@@ -158,7 +158,7 @@ test {
 }
 
 ///|
-pub impl[T : Pretty] Pretty for @style.StyledArg[T] with prettify(self) {
+pub impl[T : Pretty] Pretty for @style.StyledArg[T] with fn prettify(self) {
   let (start, end) = self._.0.render_style()
   surround(
     @rope.hidden_string(start),
