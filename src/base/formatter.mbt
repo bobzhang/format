@@ -70,159 +70,114 @@ fn Formatter::reset(self : Formatter) -> Unit {
 ///  - `precision` : Precision of decimal
 ///  - `type` : Type specifier (e.g., 'x' for hexadecimal, 'e' for
 /// scientific notation)
-fn parse_field!(self : Formatter, field : String) -> FormatField!FormatError {
+fn Formatter::parse_field(
+  self : Formatter,
+  field : String,
+) -> FormatField raise FormatError {
   self |> ignore
   if field.is_blank() {
     raise InvalidFormatField(field)
   }
-  fn parse_spec!(spec : String) -> FormatField!FormatError {
-    let mut iter = spec.iter()
-    let mut field = FormatField::default()
-    // Parse fill and alignment
-    l0~: for c in iter {
-      let ch = c
-      l1~: loop ch {
-        '>' | '<' | '^' as ch => {
-          iter = iter.drop(1)
-          guard let Ok(align) = @strconv.parse?(ch.to_string()) else {
-            _ => raise InvalidFormatField(spec)
-          }
-          field = { ..field, align: Some(align) }
-          break l0~
-        }
-        _ =>
-          match iter.take(2).drop(1).next() {
-            Some('>' | '<' | '^' as align) => {
-              field = { ..field, fill: ch }
-              iter = iter.drop(1)
-              continue l1~ align
-            }
-            Some('{' | '}') => abort("unexpected curly brace")
-            _ => break l1~
-          }
+  fn parse_spec(spec : String) -> FormatField raise FormatError {
+    // Iter is consuming in current core. Keep an explicit cursor for lookahead.
+    let chars = spec.to_array()
+    let mut pos = 0
+    let mut field : FormatField = Default::default()
+    if chars.get(0) is Some('<' | '>' | '^' as align) {
+      field = { ..field, align: Some(Align::from_string(align.to_string())), }
+      pos = 1
+    } else if chars.get(1) is Some('<' | '>' | '^' as align) {
+      field = {
+        ..field,
+        fill: chars[0],
+        align: Some(Align::from_string(align.to_string())),
       }
+      pos = 2
     }
-    // Parse sign
-    match iter.peek() {
-      Some('+') => {
-        iter = iter.drop(1)
-        field = { ..field, sign: Some('+') }
-      }
-      Some('-') => {
-        iter = iter.drop(1)
-        field = { ..field, sign: Some('-') }
-      }
-      _ => ()
+    if chars.get(pos) is Some('+' | '-' as sign) {
+      field = { ..field, sign: Some(sign), }
+      pos += 1
     }
-    // Parse width
-    match iter.peek() {
-      Some('0'..='9') => {
-        let mut len = 0
-        guard let Ok(width) = @strconv.parse?(
-          String::from_iter(
-            [
-              ..iter.take_while(fn(c) {
-                len += 1
-                match c {
-                  '0'..='9' => true
-                  _ => false
-                }
-              }),
-            ],
-          ),
-        ) else {
-          _ => raise InvalidFormatField(spec)
-        }
-        field = { ..field, width, }
-        iter = iter.drop(len)
-      }
-      _ => ()
+    let width_start = pos
+    while chars.get(pos) is Some('0'..<='9') {
+      pos += 1
     }
-    // Parse precision
-    match iter.peek() {
-      Some('.') => {
-        let mut len = 0
-        guard let Ok(precision) = @strconv.parse?(
-          String::from_iter(
-            [
-              ..iter
-              .drop(1)
-              .take_while(fn(c) {
-                len += 1
-                match c {
-                  '0'..='9' => true
-                  _ => false
-                }
-              }),
-            ],
-          ),
-        ) else {
-          _ => raise InvalidFormatField(spec)
-        }
-        field = { ..field, precision: Some(precision) }
-        iter = iter.drop(len)
+    if pos > width_start {
+      let width = @string.parse_int(
+        String::from_array(chars[width_start:pos].to_owned()),
+      ) catch {
+        _ => raise InvalidFormatField(spec)
       }
-      _ => ()
+      field = { ..field, width, }
     }
-    iter = iter.drop(1)
-    // Parse type flag
-    match iter.peek() {
-      Some(c) => {
-        iter = iter.drop(1)
-        field = { ..field, type_flag: Some(c) }
+    if chars.get(pos) is Some('.') {
+      pos += 1
+      let precision_start = pos
+      while chars.get(pos) is Some('0'..<='9') {
+        pos += 1
       }
-      _ => ()
+      let precision = @string.parse_int(
+        String::from_array(chars[precision_start:pos].to_owned()),
+      ) catch {
+        _ => raise InvalidFormatField(spec)
+      }
+      field = { ..field, precision: Some(precision), }
+    }
+    if chars.get(pos) is Some(flag) {
+      field = { ..field, type_flag: Some(flag), }
     }
     field
   }
 
-  match field.index_of(":") {
+  match field.find(":").unwrap_or(-1) {
     -1 =>
       if field.is_empty() {
-        FormatField::default()
+        (Default::default() : FormatField)
       } else {
-        guard let Ok(arg_id) = @strconv.parse?(field) else {
-          _ => raise InvalidFormatField(field)
+        guard (Ok(@string.parse_int(field)) catch { error => Err(error) })
+          is Ok(arg_id) else {
+          raise InvalidFormatField(field)
         }
-        { ..FormatField::default(), arg_id: Some(arg_id) }
+        { ..(Default::default() : FormatField), arg_id: Some(arg_id), }
       }
     i => {
       let arg_id = match field.substring(end=i) {
         "" => None
         str => {
-          guard let Ok(arg_id) = @strconv.parse?(str) else {
-            _ => raise InvalidFormatField(field)
+          guard (Ok(@string.parse_int(str)) catch { error => Err(error) })
+            is Ok(arg_id) else {
+            raise InvalidFormatField(field)
           }
           Some(arg_id)
         }
       }
       let spec = field.substring(start=i + 1)
-      { ..parse_spec!(spec), arg_id, }
+      { ..parse_spec(spec), arg_id, }
     }
   }
 }
 
 ///|
-pub fn Formatter::format!(
+pub fn Formatter::format(
   self : Formatter,
-  args : Array[&Formattable]
-) -> String!FormatError {
+  args : Array[&Formattable],
+) -> String raise FormatError {
   for i, fmt in self.format_specs {
     match self.strings.length() >= 1 {
       true => self.write_string(self.strings.remove(0))
       false => ()
     }
     if fmt.is_empty() {
-      guard let Some(obj) = args.get(i) else {
-        None => raise ArgumentNotFound(arg_id=i.to_string())
+      guard args.get(i) is Some(obj) else {
+        raise ArgumentNotFound(arg_id=i.to_string())
       }
-      self.write_string(obj.format!(None))
+      self.write_string(obj.format(None))
     } else {
-      let field = self.parse_field!(fmt)
-      guard let Some(obj) = args.get(field.arg_id.unwrap_or(i)) else {
-        None => raise ArgumentNotFound(arg_id=i.to_string())
+      let field = self.parse_field(fmt)
+      guard args.get(field.arg_id.unwrap_or(i)) is Some(obj) else {
+        raise ArgumentNotFound(arg_id=i.to_string())
       }
-      self.write_string(obj.format!(Some(field)))
+      self.write_string(obj.format(Some(field)))
     }
   }
   if not(self.strings.is_empty()) {

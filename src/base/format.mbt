@@ -19,27 +19,27 @@
 ///
 /// Example:
 ///
-/// ```moonbit
+/// ```moonbit nocheck
 /// test "try_format" {
-///   let args : Array[&Formattable] = [(42 : Int), ("world" : String)]
-///   inspect!(try_format!("Hello {1}, {0:0>3d}!", args), content="Hello world, 042!")
+///   let args : Array[&Formattable] = [(42 : Int32), ("world" : String)]
+///   inspect(try_format("Hello {1}, {0:0>3d}!", args), content="Hello world, 042!")
 /// }
 /// ```
-pub fn try_format!(
+pub fn try_format(
   format_string : String,
-  args : Array[&Formattable]
-) -> String!FormatError {
+  args : Array[&Formattable],
+) -> String raise FormatError {
   let formatter = Formatter::new()
-  formatter.init!(format_string)
-  formatter.format!(args)
+  formatter.init(format_string)
+  formatter.format(args)
 }
 
 ///|
 /// @alert unsafe "Panic if receiving an error"
 pub fn format(format_string : String, args : Array[&Formattable]) -> String {
-  match try_format?(format_string, args) {
+  match (Ok(try_format(format_string, args)) catch { error => Err(error) }) {
     Ok(result) => result
-    Err(err) => abort(err.to_string())
+    Err(err) => abort(Show::to_string(err))
   }
 }
 

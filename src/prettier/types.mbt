@@ -1,5 +1,5 @@
 ///|
-#derive(Show, Eq, Default)
+#derive(Show, Debug, Eq, Default)
 pub(all) enum Doc {
   Empty
   Break(String)
@@ -27,12 +27,21 @@ pub(open) trait PrettyFormattable: Pretty + @base.Formattable {
 }
 
 ///|
-pub impl @base.Formattable for &PrettyFormattable with format(self, f) {
-  self.pretty_format!(f).format!(f)
+pub impl @base.Formattable for &PrettyFormattable with fn format(self, f) {
+  @base.Formattable::format(self.pretty_format(f), f)
 }
 
 ///|
 /// @alert unsafe "Panic if error occurs"
-pub impl Pretty for &PrettyFormattable with prettify(self) {
-  self.pretty_format?(None).unwrap()
+pub impl Pretty for &PrettyFormattable with fn prettify(self) {
+  (Ok(self.pretty_format(None)) catch { error => Err(error) }).unwrap()
 }
+
+///|
+pub extend Doc with Pretty::{prettify}
+
+///|
+extend @style.StyledArg with Pretty::{prettify}
+
+///|
+pub impl @style.Styled for &Pretty

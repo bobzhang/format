@@ -1,11 +1,12 @@
 ///|
-let debug_enabled : Ref[Bool] = @ref.new(false)
+let debug_enabled : Ref[Bool] = Ref(false)
 
 ///|
-pub fn debug[T : Show](
+#callsite(autofill(loc))
+pub fn[T : Show] debug(
   v : T,
   with_loc~ : Bool = true,
-  loc~ : SourceLoc = _
+  loc~ : SourceLoc,
 ) -> Unit {
   if debug_enabled.val {
     if with_loc {

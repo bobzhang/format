@@ -15,14 +15,14 @@ enum SimplifiedDoc {
 fn SimplifiedDoc::to_string(self : SimplifiedDoc) -> String {
   match self {
     Nil => ""
-    Text(s, doc) => s.to_string() + doc.to_string()
+    Text(s, doc) => Show::to_string(s) + doc.to_string()
     Line(i, d) => "\n" + " ".repeat(i) + d.to_string()
   }
 }
 
 ///|
 pub impl @base.Formattable for Doc with fn format(self, field) {
-  simplify(field.or_default().width(), 0, [(0, Flat, Group(self))]).to_string()
+  simplify(field.unwrap_or_default().width(), 0, [(0, Flat, Group(self))]).to_string()
 }
 
 ///|
@@ -78,4 +78,9 @@ fn simplify(
 ///|
 pub fn Doc::print(self : Doc, width~ : Int32 = 50) -> String {
   simplify(width, 0, [(0, Flat, Group(self))]).to_string()
+}
+
+///|
+pub impl Add for Doc with fn add(self, other) {
+  self.op_add(other)
 }

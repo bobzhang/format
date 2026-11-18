@@ -1,6 +1,6 @@
 ///|
 pub(open) trait Formattable: Show {
-  fn format(Self, FormatField?) -> String raise FormatError
+  fn format(Self, FormatField?) -> String raise FormatError = _
 }
 
 ///|
@@ -18,14 +18,15 @@ pub struct Formatter {
 }
 
 ///|
-pub type! FormatError {
+#derive(Show)
+pub suberror FormatError {
   ArgumentNotFound(arg_id~ : String)
   UnmatchedCurlyBrace(Char)
   InvalidFormatField(String)
-} derive(Show)
+}
 
 ///|
-#derive(Show, Eq)
+#derive(Show, Debug, Eq)
 enum Align {
   Left
   Right
@@ -40,17 +41,17 @@ impl Default for Align with fn default() {
 
 ///|
 /// @coverage.skip
-impl @strconv.FromStr for Align with fn from_string(str) {
+fn Align::from_string(str : String) -> Align raise FormatError {
   match str {
     "<" => Left
     ">" => Right
     "^" => Center
-    _ => raise @strconv.StrConvError("invalid syntax")
+    _ => raise InvalidFormatField(str)
   }
 }
 
 ///|
-#derive(Show, Eq)
+#derive(Show, Debug, Eq)
 struct FormatField {
   arg_id : Int32?
   fill : Char
