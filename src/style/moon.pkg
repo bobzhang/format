@@ -1,5 +1,6 @@
 import {
   "YumeXi/format/base",
+  "moonbitlang/core/quickcheck",
 }
 
 import {

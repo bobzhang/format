@@ -1,4 +1,7 @@
 import {
+  "moonbitlang/core/env",
+  "moonbitlang/core/quickcheck",
+  "moonbitlang/core/quickcheck/splitmix",
   "YumeXi/format/base",
   "YumeXi/format/style",
   "YumeXi/format/prettier/rope",

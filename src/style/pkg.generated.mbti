@@ -1,0 +1,102 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "YumeXi/format/style"
+
+import {
+  "YumeXi/format/base",
+  "moonbitlang/core/bigint",
+  "moonbitlang/core/quickcheck",
+}
+
+// Values
+pub fn[T : ToColor] bg(T) -> Style
+
+pub fn emph(Emphasis) -> Style
+
+pub fn[T : ToColor] fg(T) -> Style
+
+// Errors
+
+// Types and methods
+#derive(Show)
+pub(all) struct BgColor(Color)
+
+#derive(Eq, Show)
+pub(all) enum Color {
+  Color16(Color16)
+  Color256(Int32)
+  TrueColor(Int32, Int32, Int32)
+}
+pub impl ToColor for Color
+
+#derive(Eq, Show, @quickcheck.Arbitrary)
+pub(all) enum Color16 {
+  Black
+  Red
+  Green
+  Yellow
+  Blue
+  Magenta
+  Cyan
+  White
+  BrightBlack
+  BrightRed
+  BrightGreen
+  BrightYellow
+  BrightBlue
+  BrightMagenta
+  BrightCyan
+  BrightWhite
+}
+pub impl ToColor for Color16
+
+#derive(Eq, Show)
+pub(all) enum Emphasis {
+  Bold
+  Faint
+  Italic
+  Underline
+  Blink
+  Inverse
+  Hidden
+  Strikethrough
+}
+
+#derive(Show)
+pub(all) struct FgColor(Color)
+
+#derive(Default, Show)
+pub struct Style {
+  bg : BgColor?
+  fg : FgColor?
+  emphasis : Array[Emphasis]
+}
+pub fn[T : Styled] Style::lor(Self, T) -> StyledArg[T]
+pub fn Style::render_style(Self) -> (String, String)
+pub impl Styled for Style
+
+#derive(Show)
+pub(all) struct StyledArg[T]((Style, T))
+pub fn[T : Styled] StyledArg::lor(Self[Style], T) -> Self[T]
+pub impl[T : @base.Formattable] @base.Formattable for StyledArg[T]
+pub impl[T] Styled for StyledArg[T]
+
+// Type aliases
+
+// Traits
+pub(open) trait Styled {
+  fn style(Self) -> Style = _
+}
+pub impl Styled for Int32
+pub impl Styled for Int64
+pub impl Styled for UInt32
+pub impl Styled for UInt64
+pub impl Styled for Float
+pub impl Styled for Double
+pub impl Styled for String
+pub impl Styled for @bigint.BigInt
+
+pub trait ToColor {
+  fn to_color(Self) -> Color
+}
+pub impl ToColor for Int32
+pub impl ToColor for (Int32, Int32, Int32)

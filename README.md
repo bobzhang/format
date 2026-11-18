@@ -34,7 +34,7 @@ For example:
 
 ```moonbit
 test {
-  @base.print("{}", [fg(@style.Red) | emph(Bold) | "Bold red text"])
+  @base.print("{}", [fg(@style.Red).lor(emph(Bold)).lor("Bold red text")])
 }
 ```
 

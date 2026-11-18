@@ -12,7 +12,7 @@ pub fn text(s : String) -> Doc {
 }
 
 ///|
-pub fn content[T : Show](v : T) -> Doc {
+pub fn[T : Show] content(v : T) -> Doc {
   text(v.to_string())
 }
 
@@ -23,15 +23,19 @@ pub fn nest(indent~ : Int32 = 2, doc : Doc) -> Doc {
 
 ///|
 pub fn concat(array : Array[&Pretty]) -> Doc {
-  array[:-1].rev_fold(init=array.last().or(empty()).prettify(), fn(doc, elem) {
-    elem.prettify() + doc
-  })
+  if array.is_empty() {
+    return empty()
+  }
+  array[:array.length() - 1].rev_fold(
+    init=array.last().unwrap_or(empty()).prettify(),
+    fn(doc, elem) { elem.prettify() + doc },
+  )
 }
 
 ///|
 test {
   let array : Array[&Pretty] = [text("hello"), break_with(", "), text("world")]
-  assert_eq!(
+  assert_eq(
     concat(array),
     Concat(text("hello"), Concat(Break(", "), text("world"))),
   )
@@ -71,7 +75,7 @@ pub fn surround(open : &Pretty, doc : &Pretty, close : &Pretty) -> Doc {
 }
 
 ///|
-let seed : Ref[UInt64] = @ref.new(0)
+let seed : Ref[UInt64] = Ref(0)
 
 ///|
 pub fn enclose(
@@ -86,18 +90,18 @@ pub fn enclose(
     None => {
       seed.val += 8
       @style.Color16(
-        @style.Color16::arbitrary(
+        @quickcheck.Arbitrary::arbitrary(
           12,
-          @quickcheck/splitmix.new(seed=@env.now() + seed.val * 128),
+          @splitmix.new(seed=@env.now() + seed.val * 128),
         ),
       )
     }
   }
   let style = @style.fg(foreground)
   if colorized_doc {
-    (style | surround(open, doc, close)).prettify()
+    Pretty::prettify(style.lor(surround(open, doc, close)))
   } else {
-    surround(style | open, doc, style | close).prettify()
+    surround(style.lor(open), doc, style.lor(close))
   }
 }
 
@@ -108,13 +112,13 @@ pub fn colorize(doc : &Pretty, foreground? : &@style.ToColor) -> Doc {
     None => {
       seed.val += 8
       @style.Color16(
-        @style.Color16::arbitrary(
+        @quickcheck.Arbitrary::arbitrary(
           12,
-          @quickcheck/splitmix.new(seed=@env.now() + seed.val * 128),
+          @splitmix.new(seed=@env.now() + seed.val * 128),
         ),
       )
     }
   }
   let style = @style.fg(foreground)
-  (style | doc).prettify()
+  Pretty::prettify(style.lor(doc))
 }

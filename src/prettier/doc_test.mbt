@@ -1,18 +1,18 @@
 ///|
 test {
   let doc = group(text("hello") + nest(break_with(" , ") + text("world")))
-  inspect!(
+  inspect(
     @base.format("{:11}", [doc]),
-    content=
+    content=(
       #|hello
       #|  world
-    ,
+    ),
   )
-  inspect!(
+  inspect(
     @base.format("{:14}", [doc]),
-    content=
+    content=(
       #|hello , world
-    ,
+    ),
   )
 }
 
@@ -58,7 +58,7 @@ test "show tree 1" {
     }
   }
 
-  let tree = Node([
+  let tree : Tree = Node([
     Leaf(100),
     Leaf(200),
     Leaf(300000000),
@@ -70,9 +70,9 @@ test "show tree 1" {
     ]),
     Leaf(1000),
   ])
-  inspect!(
+  inspect(
     show_tree(tree).print(width=60),
-    content=
+    content=(
       #|Node(
       #|  100,
       #|  200,
@@ -85,62 +85,69 @@ test "show tree 1" {
       #|  ),
       #|  1000
       #|)
-    ,
+    ),
   )
 }
 
-///| Reference: https://homepages.inf.ed.ac.uk/wadler/papers/prettier/prettier.pdf
+///|
+/// Reference: https://homepages.inf.ed.ac.uk/wadler/papers/prettier/prettier.pdf
+priv enum NamedTree {
+  Node(String, Array[NamedTree])
+}
+
+///|
+fn NamedTree::show_named_tree(self : NamedTree) -> Doc {
+  let Node(s, ts) = self
+  group(nest(indent=s.length(), text(s) + show_named_bracket(ts[:])))
+}
+
+///|
+fn show_named_bracket(ts : ArrayView[NamedTree]) -> Doc {
+  match ts {
+    [] => empty()
+    ts => text("[") + nest(indent=1, show_named_trees(ts)) + text("]")
+  }
+}
+
+///|
+fn show_named_trees(ts : ArrayView[NamedTree]) -> Doc {
+  match ts {
+    [t] => t.show_named_tree()
+    [t, .. ts] =>
+      t.show_named_tree() + text(",") + space() + show_named_trees(ts)
+    [] => abort("unreachable")
+  }
+}
+
+///|
 test "show tree 2" {
-  enum Tree {
-    Node(String, Array[Tree])
-  }
-  fn show_tree(self : Tree) -> Doc {
-    let Node(s, ts) = self
-    group(nest(indent=s.length(), text(s) + show_bracket(ts[:])))
-  }
-
-  fn show_bracket(ts : ArrayView[Tree]) -> Doc {
-    match ts {
-      [] => empty()
-      ts => text("[") + nest(indent=1, show_trees(ts)) + text("]")
-    }
-  }
-
-  fn show_trees(ts : ArrayView[Tree]) -> Doc {
-    match ts {
-      [t] => show_tree(t)
-      [t, .. ts] => show_tree(t) + text(",") + space() + show_trees(ts)
-      [] => abort("unreachable")
-    }
-  }
-
-  let tree = Node("aaa", [
+  let tree : NamedTree = Node("aaa", [
     Node("bbbb", [Node("cc", []), Node("dd", [])]),
     Node("eee", []),
     Node("fff", [Node("gg", []), Node("hh", []), Node("ii", [])]),
   ])
-  let doc = show_tree(tree)
-  inspect!(
+  let doc = tree.show_named_tree()
+  inspect(
     prettify("{:80}", [doc]),
     content="aaa[bbbb[cc, dd], eee, fff[gg, hh, ii]]",
   )
-  inspect!(
+  inspect(
     prettify("{:10}", [doc]),
-    content=
+    content=(
       #|aaa[bbbb[cc,
       #|         dd],
       #|    eee,
       #|    fff[gg,
       #|        hh,
       #|        ii]]
-    ,
+    ),
   )
-  inspect!(
+  inspect(
     prettify("{:20}", [doc]),
-    content=
+    content=(
       #|aaa[bbbb[cc, dd],
       #|    eee,
       #|    fff[gg, hh, ii]]
-    ,
+    ),
   )
 }

@@ -4,7 +4,7 @@ let split_length : Int32 = 2048
 // let join_length : Int = split_length / 2
 
 ///|
-#derive(Default, Show, Eq)
+#derive(Default, Show, Debug, Eq)
 pub struct Leaf {
   buf : String
   start : Int32
@@ -12,14 +12,14 @@ pub struct Leaf {
 }
 
 ///|
-#derive(Default, Show, Eq)
+#derive(Default, Show, Debug, Eq)
 pub struct Node {
   left : Rope?
   right : Rope?
 }
 
 ///|
-#derive(Eq)
+#derive(Debug, Eq)
 pub(all) enum Rope {
   Leaf(Leaf, len~ : Int32)
   Node(Node, len~ : Int32)
@@ -27,7 +27,7 @@ pub(all) enum Rope {
 
 ///|
 pub impl Default for Rope with fn default() {
-  Leaf(Leaf::default(), len=0)
+  Leaf((Default::default() : Leaf), len=0)
 }
 
 ///|
@@ -35,8 +35,8 @@ pub impl Show for Rope with fn output(self, logger) {
   match self {
     Leaf(leaf, ..) => Logger::write_string(logger, leaf.buf)
     Node(node, ..) => {
-      logger.write_object(node.left.or_default())
-      logger.write_object(node.right.or_default())
+      logger.write_object(node.left.unwrap_or_default())
+      logger.write_object(node.right.unwrap_or_default())
     }
   }
 }
@@ -89,4 +89,9 @@ pub fn Rope::length(self : Rope) -> Int32 {
 pub fn hidden_string(s : String) -> Rope {
   // Uses fake length to avoid counting the hidden characters when pretty printing
   Leaf({ buf: s, start: 0, end: s.length(), }, len=0)
+}
+
+///|
+fn Rope::to_string(self : Rope) -> String {
+  Show::to_string(self)
 }

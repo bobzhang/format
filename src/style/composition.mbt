@@ -1,5 +1,5 @@
 ///|
-pub fn Style::lor[T : Styled](self : Style, other : T) -> StyledArg[T] {
+pub fn[T : Styled] Style::lor(self : Style, other : T) -> StyledArg[T] {
   let other_style = other.style()
   let new_style = {
     bg: match self.bg {
@@ -12,18 +12,23 @@ pub fn Style::lor[T : Styled](self : Style, other : T) -> StyledArg[T] {
     },
     emphasis: self.emphasis + other_style.emphasis,
   }
-  (new_style, other)
+  StyledArg((new_style, other))
 }
 
 ///|
-pub fn lor[T : Styled](self : StyledArg[Style], other : T) -> StyledArg[T] {
-  ((self.style() | other.style()).style(), other)
+pub fn[T : Styled] StyledArg::lor(
+  self : StyledArg[Style],
+  other : T,
+) -> StyledArg[T] {
+  StyledArg(
+    (Styled::style(Styled::style(self).lor(Styled::style(other))), other),
+  )
 }
 
 ///|
 test {
-  let _ = fg(Red) | bg(Blue) | 1.23
-  let _ = fg(Red) | emph(Bold) | "test"
+  let _ = fg(Red).lor(bg(Blue)).lor(1.23)
+  let _ = fg(Red).lor(emph(Bold)).lor("test")
 }
 
 ///|
@@ -48,5 +53,5 @@ pub impl ToColor for (Int32, Int32, Int32) with fn to_color(self) {
 
 ///|
 test {
-  let _ = fg(Red) | bg((255, 255, 255)) | 1.23
+  let _ = fg(Red).lor(bg((255, 255, 255))).lor(1.23)
 }

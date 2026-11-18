@@ -8,11 +8,12 @@ pub struct Style {
 
 ///|
 pub(open) trait Styled {
-  fn style(Self) -> Style
+  fn style(Self) -> Style = _
 }
 
 ///|
-pub type StyledArg[T] (Style, T) derive(Show)
+#derive(Show)
+pub(all) struct StyledArg[T]((Style, T))
 
 ///|
 pub impl Styled for Style with fn style(self) {
@@ -26,7 +27,7 @@ impl Styled with fn style(_) {
 
 ///|
 pub impl[T] Styled for StyledArg[T] with fn style(self) {
-  self.0
+  self.0.0
 }
 
 ///|
@@ -59,10 +60,12 @@ pub(all) enum Color {
 }
 
 ///|
-pub type FgColor Color derive(Show)
+#derive(Show)
+pub(all) struct FgColor(Color)
 
 ///|
-pub type BgColor Color derive(Show)
+#derive(Show)
+pub(all) struct BgColor(Color)
 
 ///|
 #derive(Show, Eq)
@@ -78,13 +81,13 @@ pub(all) enum Emphasis {
 }
 
 ///|
-pub fn fg[T : ToColor](color : T) -> Style {
-  { bg: None, fg: Some(color.to_color()), emphasis: [] }
+pub fn[T : ToColor] fg(color : T) -> Style {
+  { bg: None, fg: Some(FgColor(color.to_color())), emphasis: [], }
 }
 
 ///|
-pub fn bg[T : ToColor](color : T) -> Style {
-  { bg: Some(color.to_color()), fg: None, emphasis: [] }
+pub fn[T : ToColor] bg(color : T) -> Style {
+  { bg: Some(BgColor(color.to_color())), fg: None, emphasis: [], }
 }
 
 ///|
@@ -96,3 +99,27 @@ pub fn emph(emphasis : Emphasis) -> Style {
 pub trait ToColor {
   fn to_color(Self) -> Color
 }
+
+///|
+pub impl Styled for String
+
+///|
+pub impl Styled for Double
+
+///|
+pub impl Styled for Int32
+
+///|
+pub impl Styled for UInt32
+
+///|
+pub impl Styled for Int64
+
+///|
+pub impl Styled for UInt64
+
+///|
+pub impl Styled for Float
+
+///|
+pub impl Styled for BigInt

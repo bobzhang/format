@@ -58,7 +58,7 @@ fn int64_to_string(n : Int64, type_flag : Char) -> String {
         let bit = (n >> i) & 1
         binary_string += bit.to_string()
       }
-      binary_string.trim_start("0")
+      binary_string.trim_start(chars="0").to_owned()
     }
     'o' | 'O' => {
       let mut n = n
@@ -86,7 +86,10 @@ fn int64_to_string(n : Int64, type_flag : Char) -> String {
       }
       while n != 0 {
         let remainder = (n % 16).abs()
-        hex_string += hex_digits[remainder.to_int()].to_string()
+        hex_string += hex_digits
+          .get_char(remainder.to_int())
+          .unwrap()
+          .to_string()
         n /= 16
       }
       String::from_array(hex_string.to_array().rev())
@@ -116,10 +119,10 @@ fn int64_to_string(n : Int64, type_flag : Char) -> String {
 
 ///|
 test {
-  inspect!(int64_to_string(12, 'b'), content="1100")
-  inspect!(int64_to_string(-12, 'o'), content="14")
-  inspect!(int64_to_string(32767, 'x'), content="7fff")
-  inspect!(int64_to_string(32767, 'O'), content="77777")
+  inspect(int64_to_string(12, 'b'), content="1100")
+  inspect(int64_to_string(-12, 'o'), content="14")
+  inspect(int64_to_string(32767, 'x'), content="7fff")
+  inspect(int64_to_string(32767, 'O'), content="77777")
 }
 
 ///|
@@ -145,7 +148,7 @@ pub impl Formattable for Int64 with fn format(self, field) {
         None => ()
       }
       match field.precision {
-        Some(0) => result = result.split(".").collect()[0]
+        Some(0) => result = result.split(".").collect()[0].to_owned()
         Some(precision) => result = result + "." + "0".repeat(precision)
         _ => ()
       }
@@ -166,14 +169,16 @@ pub impl Formattable for Int64 with fn format(self, field) {
   result
 }
 
-///| @coverage.skip
-pub impl Formattable for Int with format(self, field) {
-  self.to_int64().format!(field)
+///|
+/// @coverage.skip
+pub impl Formattable for Int32 with fn format(self, field) {
+  Formattable::format(self.to_int64(), field)
 }
 
-///| @coverage.skip
-pub impl Formattable for UInt with format(self, field) {
-  self.to_int64().format!(field)
+///|
+/// @coverage.skip
+pub impl Formattable for UInt32 with fn format(self, field) {
+  Formattable::format(self.to_int64(), field)
 }
 
 ///|
@@ -189,7 +194,7 @@ pub impl Formattable for UInt64 with fn format(self, field) {
         _ => ()
       }
       match field.precision {
-        Some(0) => result = result.split(".").collect()[0]
+        Some(0) => result = result.split(".").collect()[0].to_owned()
         Some(precision) => result = result + "." + "0".repeat(precision)
         _ => ()
       }
@@ -242,7 +247,7 @@ fn double_to_string(n : Double, type_flag : Char) -> String {
         exponent -= 1
       }
       let mantissa = "\{n}"
-      let mantissa = mantissa.trim_end("0").trim_end(".")
+      let mantissa = mantissa.trim_end(chars="0").trim_end(chars=".")
       let sign = if negative { "-" } else { "" }
       "\{sign}\{mantissa}e\{exponent}"
     }
@@ -271,7 +276,7 @@ pub impl Formattable for Double with fn format(self, field) raise {
         None => ()
       }
       match field.precision {
-        Some(0) => result = result.split(".").collect()[0]
+        Some(0) => result = result.split(".").collect()[0].to_owned()
         Some(precision) => {
           let count = count_digit(self)
           if count == 0 {
@@ -301,9 +306,10 @@ pub impl Formattable for Double with fn format(self, field) raise {
   result
 }
 
-///| @coverage.skip
-pub impl Formattable for Float with format(self, field) {
-  self.to_double().format!(field)
+///|
+/// @coverage.skip
+pub impl Formattable for Float with fn format(self, field) {
+  Formattable::format(self.to_double(), field)
 }
 
 ///|
@@ -313,7 +319,11 @@ pub impl Formattable for BigInt with fn format(self, field) {
     Some(field) => {
       match field.type_flag {
         Some('x' | 'X' as flag) =>
-          result = self.to_hex(uppercase=if flag == 'X' { true } else { false })
+          result = if flag == 'X' {
+            self.to_string(radix=16).to_upper()
+          } else {
+            self.to_string(radix=16)
+          }
         Some(flag) =>
           raise InvalidFormatField(
             "the type flag '\{flag}' is not supported for BigInt",
@@ -330,7 +340,7 @@ pub impl Formattable for BigInt with fn format(self, field) {
         None => ()
       }
       match field.precision {
-        Some(0) => result = result.split(".").collect()[0]
+        Some(0) => result = result.split(".").collect()[0].to_owned()
         Some(precision) => result = result + "." + "0".repeat(precision)
         _ => ()
       }
