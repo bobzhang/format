@@ -43,7 +43,8 @@ pub fn format(format_string : String, args : Array[&Formattable]) -> String {
   }
 }
 
-///| @coverage.skip
+///|
+/// @coverage.skip
 pub fn print(format_string : String, args : Array[&Formattable]) -> Unit {
   println(format(format_string, args))
 }

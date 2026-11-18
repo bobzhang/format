@@ -17,7 +17,7 @@ pub fn content[T : Show](v : T) -> Doc {
 }
 
 ///|
-pub fn nest(indent~ : Int = 2, doc : Doc) -> Doc {
+pub fn nest(indent~ : Int32 = 2, doc : Doc) -> Doc {
   Nest(indent, doc)
 }
 
@@ -79,7 +79,7 @@ pub fn enclose(
   doc : &Pretty,
   close : &Pretty,
   foreground? : &@style.ToColor,
-  colorized_doc~ : Bool = false
+  colorized_doc~ : Bool = false,
 ) -> Doc {
   let foreground = match foreground {
     Some(c) => @style.ToColor::to_color(c)

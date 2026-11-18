@@ -1,19 +1,21 @@
 ///|
 pub(open) trait Formattable: Show {
-  format(Self, FormatField?) -> String!FormatError
+  fn format(Self, FormatField?) -> String raise FormatError
 }
 
-///| @coverage.skip
-impl Formattable with format(self, _) {
+///|
+/// @coverage.skip
+impl Formattable with fn format(self, _) {
   self.to_string()
 }
 
 ///|
+#derive(Show)
 pub struct Formatter {
   strings : Array[String]
   format_specs : Array[String]
   builder : StringBuilder
-} derive(Show)
+}
 
 ///|
 pub type! FormatError {
@@ -23,19 +25,22 @@ pub type! FormatError {
 } derive(Show)
 
 ///|
+#derive(Show, Eq)
 enum Align {
   Left
   Right
   Center
-} derive(Show, Eq)
+}
 
-///| @coverage.skip
-impl Default for Align with default() {
+///|
+/// @coverage.skip
+impl Default for Align with fn default() {
   Left
 }
 
-///| @coverage.skip
-impl @strconv.FromStr for Align with from_string(str) {
+///|
+/// @coverage.skip
+impl @strconv.FromStr for Align with fn from_string(str) {
   match str {
     "<" => Left
     ">" => Right
@@ -45,18 +50,20 @@ impl @strconv.FromStr for Align with from_string(str) {
 }
 
 ///|
+#derive(Show, Eq)
 struct FormatField {
-  arg_id : Int?
+  arg_id : Int32?
   fill : Char
   align : Align?
-  width : Int
-  precision : Int?
+  width : Int32
+  precision : Int32?
   sign : Char?
   type_flag : Char?
-} derive(Show, Eq)
+}
 
-///| @coverage.skip
-pub impl Default for FormatField with default() {
+///|
+/// @coverage.skip
+pub impl Default for FormatField with fn default() {
   {
     arg_id: None,
     fill: ' ',

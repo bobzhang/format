@@ -1,5 +1,5 @@
 ///|
-pub fn render_style(self : Style) -> (String, String) {
+pub fn Style::render_style(self : Style) -> (String, String) {
   let start = StringBuilder::new()
   start.write_string("\x1b[")
   let end = StringBuilder::new()
